@@ -4,9 +4,7 @@ import matplotlib.pyplot as plt
 def LagrangeBasis(x,n,i,x_node):
     lagrange = 1
     for k in range(n+1):
-        if(k == i):
-            continue
-        else: 
+        if(k != i):
             lagrange = lagrange*((x-x_node[k])/(x_node[i]-x_node[k]))
     return lagrange
 

@@ -20,6 +20,23 @@ def forwarddifference(h):
     fx0 = (polyh-poly)/h
     return fx0
 
+def LagrangeBasisDeriv(x,n,i,x_node,f_node):
+    lagrange = 0
+    for m in range(n+1):
+        product = 1
+        for k in range(n+1):
+            if(k!=i and k!=m):
+                product = product*(x-x_node[k])/(x_node[i]-x_node[k])
+        if(m!=i):
+            lagrange += (1/(x_node[i]-x_node[m]))*product 
+    return lagrange
+
+def LagrangePolynomDeriv(x,n,x_node,f_node):
+    poly = 0
+    for i in range(n+1):
+        poly += np.multiply(f_node[i],LagrangeBasisDeriv(x,n,i,x_node,f_node))
+    return poly
+
 def plotlagrange(polynome,diff):
     plt.plot(x,polynome,color="yellow",linewidth=1)
     plt.plot(x_node,f_node,'o',color='black')
@@ -39,7 +56,7 @@ x = np.linspace(0,4,500)                     #function input
 fx = (x/(np.add(1,x)))**5                    #exact output
 o = 4                                        #order  
 ##############################################
-
-plotlagrange(LagrangePolynom(x,o,x_node,f_node),forwarddifference(h))
+print(LagrangePolynomDeriv(0.6,4,x_node,f_node))
+plotlagrange(LagrangePolynom(x,o,x_node,f_node),LagrangePolynomDeriv(x,o,x_node,f_node))
 forwarddifference(h)
 

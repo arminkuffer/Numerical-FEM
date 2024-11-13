@@ -1,16 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 #Blatt 2:
-def lineintersection(p1,p2):
+def lineintersection(p2):
     y = 2
     x = [None]*500
     ex = [1]*500
     for i in range(len(p2[0])):
         x[i] = (p2[0][i])/((p2[1][i])-1)
     fig, ax = plt.subplots(figsize=(8,6))
-    ax.plot(np.log(delta),np.log(np.abs(np.subtract(ex,x))))
+    ax.loglog(delta,np.abs(np.subtract(ex,x)))
     plt.show()
 delta = np.logspace(-20,5, 500)
-x1 = [0,1]
 x2 = [delta,1+delta]
-lineintersection(x1,x2)
+lineintersection(x2)

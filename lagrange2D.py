@@ -1,5 +1,3 @@
-import numpy as np
-
 def linquadref(xi,eta):
     N_i = [0]*4
     for i in range(len(N_i)):

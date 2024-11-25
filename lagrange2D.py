@@ -48,9 +48,9 @@ eta1 = 0
 xi2 = 0.577
 eta2 = -0.577
 f_node = [0,1,3,1]
-print(LagrangePolynom(linquadref(xi1,eta1),f_node))
-print(LagrangePolynom(linquadref(xi2,eta2),f_node))
-print(LagrangePolyDeriv(linquadderivref(xi1,eta1),f_node))
-print(LagrangePolyDeriv(linquadderivref(xi2,eta2),f_node))
+#print(LagrangePolynom(linquadref(xi1,eta1),f_node))
+#print(LagrangePolynom(linquadref(xi2,eta2),f_node))
+#print(LagrangePolyDeriv(linquadderivref(xi1,eta1),f_node))
+#print(LagrangePolyDeriv(linquadderivref(xi2,eta2),f_node))
 
 

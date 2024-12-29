@@ -16,6 +16,8 @@ plot2D(np.linspace(-np.pi,np.pi,500))"""
 nodes = np.array([[-1,-1],[0,-1],[1,-1],[-1,0],[0,0],[1,0],[-1,1],[0,1],[1,1]])
 elements = np.array([[0,1,4,3],[1,2,5,4],[3,4,7,6],[4,5,8,7]])
 sol = nodes[:,0]**2+nodes[:,1]**2
+
+#FKT. 0
 def quadplot(nodes,elements,sol):
     triangles = []
     for element in elements:

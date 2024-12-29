@@ -1,4 +1,5 @@
-def linquadref(xi,eta):
+#FKT. I
+def linquadref(xi,eta): 
     N_i = [0]*4
     for i in range(len(N_i)):
         match i:
@@ -18,23 +19,23 @@ def LagrangePolynom(N_i,fx):
         poly += N_i[i]*fx[i]
     return poly
 
-
+#FKT. II
 def linquadderivref(xi,eta):
     deriv = [[0,0],[0,0],[0,0],[0,0]]
     for i in range(len(deriv)):
         match i:
-            case 0:
-                deriv[i][0] = -(1/4)*(1-eta)
-                deriv[i][1] = -(1/4)*(1-xi)
+            case 0: 
+                deriv[i][0] = -(1/4)*(1-eta) #dxi
+                deriv[i][1] = -(1/4)*(1-xi)  #deta
             case 1:
-                deriv[i][0] = (1/4)*(1-eta)
-                deriv[i][1] = -(1/4)*(1+xi)
+                deriv[i][0] = (1/4)*(1-eta) #dxi
+                deriv[i][1] = -(1/4)*(1+xi)#deta
             case 2:
-                deriv[i][0] = (1/4)*(1+eta)
-                deriv[i][1] = (1/4)*(1+xi)
+                deriv[i][0] = (1/4)*(1+eta) #dxi
+                deriv[i][1] = (1/4)*(1+xi)#deta
             case 3:
-                deriv[i][0] = -(1/4)*(1+eta)
-                deriv[i][1] = (1/4)*(1-xi)
+                deriv[i][0] = -(1/4)*(1+eta) #dxi
+                deriv[i][1] = (1/4)*(1-xi)#deta
     return deriv
 def LagrangePolyDeriv(deriv,fx):
     poly1 = 0

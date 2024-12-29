@@ -39,4 +39,4 @@ def quadplot(nodes,elements,sol):
     ax.set_zlabel('Z')
     ax.set_title('3D Plot')
     plt.show()
-quadplot(nodes,elements,sol)
+"""quadplot(nodes,elements,sol)"""

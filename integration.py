@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import lagrange2D as lg2D
 from itertools import product
 from lagrange2D import linquadref,linquadderivref
 def midpointrule(a,b):
@@ -58,14 +56,13 @@ def getJacobian(nodes,xi,eta):
     jacobival[2]= np.linalg.inv(jacobian)
     return jacobival
 
-## FKT 8 noch nicht fertig!
 
 points = [[0],[-1/np.sqrt(3),1/np.sqrt(3)],[float(-np.sqrt(3/5)),0,float(np.sqrt(3/5))]]
 weights = [[2],[1,1],[5/9,8/9,5/9]]
-print(gaussianquadrature1D(gx(1),gw(1),0,4))
+"""print(gaussianquadrature1D(gx(1),gw(1),0,4))
 print(gaussianquadrature1D(gx(2),gw(2),0,4))
 print(gaussianquadrature1D(gx(3),gw(3),0,4))
 print(gx2dref(3))
 print(gw2dref(3))
 print(getxPos(np.array([[2,1],[4,1],[4,3],[2,2]]),0.577,-0.577))
-print(getJacobian(np.array([[2,1],[4,1],[4,3],[2,2]]),0.577,-0.577))
+print(getJacobian(np.array([[2,1],[4,1],[4,3],[2,2]]),0.577,-0.577))"""

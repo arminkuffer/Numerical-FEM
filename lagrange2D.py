@@ -1,15 +1,17 @@
 #FKT. I
+import numpy as np
 def linquadref(xi,eta): 
-    N_i = [0]*4
+    N_i = np.array([0]*4)
+    print(len(N_i))
     for i in range(len(N_i)):
-        match i:
-            case 0: 
-                N_i[i] = (1/4)*(1-xi)*(1-eta)
-            case 1:
-                N_i[i] = (1/4)*(1+xi)*(1-eta)
-            case 2:
-                N_i[i] = (1/4)*(1+xi)*(1+eta)      
-            case 3:
+        if i == 0: 
+            N_i[i] = (1/4)*(1-xi)*(1-eta)
+            print(N_i[i])
+        elif i == 1:
+            N_i[i] = (1/4)*(1+xi)*(1-eta)
+        elif i == 2:
+            N_i[i] = (1/4)*(1+xi)*(1+eta)      
+        elif i == 3:
                 N_i[i] = (1/4)*(1-xi)*(1+eta)   
     return N_i   
 
@@ -21,21 +23,20 @@ def LagrangePolynom(N_i,fx):
 
 #FKT. II
 def linquadderivref(xi,eta):
-    deriv = [[0,0],[0,0],[0,0],[0,0]]
+    deriv = np.array([[0,0],[0,0],[0,0],[0,0]])
     for i in range(len(deriv)):
-        match i:
-            case 0: 
-                deriv[i][0] = -(1/4)*(1-eta) #dxi
-                deriv[i][1] = -(1/4)*(1-xi)  #deta
-            case 1:
-                deriv[i][0] = (1/4)*(1-eta) #dxi
-                deriv[i][1] = -(1/4)*(1+xi)#deta
-            case 2:
-                deriv[i][0] = (1/4)*(1+eta) #dxi
-                deriv[i][1] = (1/4)*(1+xi)#deta
-            case 3:
-                deriv[i][0] = -(1/4)*(1+eta) #dxi
-                deriv[i][1] = (1/4)*(1-xi)#deta
+        if i == 0:
+            deriv[i][0] = -(1/4)*(1-eta) #dxi
+            deriv[i][1] = -(1/4)*(1-xi)  #deta
+        elif i == 1:
+            deriv[i][0] = (1/4)*(1-eta) #dxi
+            deriv[i][1] = -(1/4)*(1+xi)#deta
+        elif i == 2:
+            deriv[i][0] = (1/4)*(1+eta) #dxi
+            deriv[i][1] = (1/4)*(1+xi)#deta
+        elif i == 3:
+            deriv[i][0] = -(1/4)*(1+eta) #dxi
+            deriv[i][1] = (1/4)*(1-xi)#deta
     return deriv
 def LagrangePolyDeriv(deriv,fx):
     poly1 = 0
@@ -53,5 +54,9 @@ f_node = [0,1,3,1]
 #print(LagrangePolynom(linquadref(xi2,eta2),f_node))
 #print(LagrangePolyDeriv(linquadderivref(xi1,eta1),f_node))
 #print(LagrangePolyDeriv(linquadderivref(xi2,eta2),f_node))
+print(linquadref(0,0))
+print(linquadref(0.577,-0.577))
+print(linquadderivref(0,0))
+print(linquadderivref(0.577,-0.577))
 
 

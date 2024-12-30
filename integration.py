@@ -46,14 +46,20 @@ def getxPos(nodes, xi , eta):
     return pos 
 
 def getJacobian(nodes,xi,eta):
-    jacobival = [0]*3
-    jacobian = [0]*2
+    jacobival = np.zeros(3,dtype="object")
+    jacobian = np.zeros((2,2))
     for i in range(4):
-        jacobian[0] += linquadderivref(xi,eta)[i][0]*nodes[i]
-        jacobian[1] += linquadderivref(xi,eta)[i][1]*nodes[i]
+        jacobian[0][0] += linquadderivref(xi,eta)[i][0]*nodes[i][0]
+        jacobian[0][1] += linquadderivref(xi,eta)[i][1]*nodes[i][0]
+
+        jacobian[1][0] += linquadderivref(xi,eta)[i][0]*nodes[i][1]
+        jacobian[1][1] += linquadderivref(xi,eta)[i][1]*nodes[i][1]
     jacobival[0] = jacobian
     jacobival[1] = np.linalg.det(jacobian)
-    jacobival[2]= np.linalg.inv(jacobian)
+    if jacobival[1] == 0:
+        jacobival[2] = np.zeros((2,2))
+    else:
+        jacobival[2] = np.linalg.inv(jacobian)
     return jacobival
 
 

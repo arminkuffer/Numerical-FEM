@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.tri import Triangulation
+from matplotlib.tri import Triangulation,TriAnalyzer, UniformTriRefiner
 #commented solutions not important for FEM programm
 """def plot2D(x):
     y = np.sin(x)
@@ -29,14 +29,13 @@ def quadplot(nodes,elements,sol):
 
     fig = plt.figure()
     ax = fig.add_subplot(111,projection='3d')
-
     triang = Triangulation(x,y,triangles)
-
-    ax.plot_trisurf(triang,sol,cmap='viridis')
-
+    trisurf = ax.plot_trisurf(triang,sol,cmap='hot')
+    color_bar = fig.colorbar(trisurf, ax=ax, shrink=0.5, aspect=5)
+    color_bar.set_label('Temperature')
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
+    ax.set_zlabel('T(x,y)')
     ax.set_title('3D Plot')
     plt.show()
 """quadplot(nodes,elements,sol)"""

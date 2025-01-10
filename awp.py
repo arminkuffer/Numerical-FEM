@@ -86,6 +86,9 @@ def BDF2(timestep,M,B,C,sol):
         LhsRhs[1] = 2*M[n-1]*sol[n-1]-(1/2)*M[n-1]*sol[n]+timestep*C[n-1]
         n+=1
     return LhsRhs
+
+
+
 #Anwendung auf DGL
 def DGLOST(phi0,timestep,theta):
     phi = np.zeros(int(2/timestep+1))

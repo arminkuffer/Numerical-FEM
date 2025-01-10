@@ -2,6 +2,7 @@ import numpy as np
 from lagrange2D import linquadderivref
 from triagplot import quadplot
 from integration import gx2dref,gw2dref,getJacobian
+from meshgen import meshGen
 
 #Variables
 Lambda = 48
@@ -10,49 +11,13 @@ T2 = 300
 r = 0.02+0.06 #r = 0.08 kleinster Radius für den gilt T15 < 450 (Maximalwert für y = h)
 b = 0.3
 h = 0.3
-nodes = np.array([[0,0],
-                  [b/3,0],
-                  [(2/3)*b,0],
-                  [b,0],
-                   [0,h/3],
-                   [b/3,h/3],
-                   [(2/3)*b,h/3],
-                   [b,h/3],
-                   [0,(2*h)/3],
-                   [b/3,(2*h)/3],
-                   [(2/3)*b,(2*h)/3],
-                   [b-r*np.sin(np.pi/6),h-r*np.cos(np.pi/6)],
-                   [b,h-r],
-                   [b-r*np.cos(np.pi/6),h-r*np.sin(np.pi/6)],
-                   [0,h],
-                   [b/3,h],
-                   [b/2,h],
-                   [b-r,h]])
-
-elements = np.array([[1,2,6,5],
-                     [2,3,7,6],
-                     [3,4,8,7],
-                     [5,6,10,9],
-                      [6,7,11,10],
-                      [11,7,12,14],
-                      [7,8,13,12],
-                      [9,10,16,15],
-                      [10,11,17,16],
-                      [11,14,18,17]])
-
-dbc = np.array([[1,T1],
-                [2,T1],
-                [3,T1],
-                [4,T1],
-                [12,T2],
-                [13,T2],     
-                [14,T2],
-                [18,T2]])
-
-
-
-
-
+nodes,elements,edges = meshGen(b,h,r,4)
+dbc = np.empty((len(edges[2])+len(edges[4]),),dtype=object)
+for i in range(dbc.shape[0]):
+    if i < len(edges[2]):
+        dbc[i] = [edges[2][i],T1]
+    else: 
+        dbc[i] = [edges[4][i-len(edges[2])],T2]
 
 #Functions:
 def evaluate_stat(elenodes, gpx, gpw):
@@ -101,5 +66,3 @@ def solve(nodes,elements,dbc):
 sol = solve(nodes,elements,dbc)
 print(sol)
 quadplot(nodes,elements-1,sol)
-
-

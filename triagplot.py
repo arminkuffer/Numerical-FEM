@@ -1,8 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.tri import Triangulation,TriAnalyzer, UniformTriRefiner
-#commented solutions not important for FEM programm
+from matplotlib.tri import Triangulation
+
 """def plot2D(x):
     y = np.sin(x)
     plt.plot(x,y,label="f(x) = sin(x)")

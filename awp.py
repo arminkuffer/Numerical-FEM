@@ -49,42 +49,30 @@ plt.show()"""
 
 #FKT IX:
 def OST(theta,timestep,M,B,C,sol):
-    LhsRhs = np.zeros(2)
-    n = 0
-    while n < len(sol):
-        LhsRhs[0] = M[n]-theta*timestep*B[n]
-        LhsRhs[1] = (M[n]+(1-theta)*timestep*B[n+1])*sol[0]+timestep*(theta*C[n]+(1-theta)*C[n+1])
-        n+=1
+    LhsRhs = np.zeros((2,),dtype=object)
+    LhsRhs[0] = M-theta*timestep*B[0]
+    LhsRhs[1] = np.dot((M+(1-theta)*timestep*B[1]),sol)+timestep*(theta*C[0]+(1-theta)*C[1])
     return LhsRhs
 
 #FKT X:
 def AB2(timestep,M,B,C,sol):
-    LhsRhs = np.zeros(2)
-    n = 1
-    while n < len(sol):
-        LhsRhs[0] = M[n-1]
-        LhsRhs[1] = M[n-1]*sol[n-1]+timestep*0.5*(3*B[n-1]*sol[n-1]+3*C[n-1]-B[n]*sol[n]-C[n])
-        n+=1
+    LhsRhs = np.zeros((2,),dtype=object)
+    LhsRhs[0] = M
+    LhsRhs[1] = np.dot(M,sol[0])+timestep*(1/2)*(3*np.dot(B[0],sol[0])+3*C[0]-np.dot(B[1],sol[1])-C[1])
     return LhsRhs
 
 #FKT XI:
 def AM3(timestep,M,B,C,sol):
-    LhsRhs = np.zeros(2)
-    n = 1
-    while n < len(sol):
-        LhsRhs[0] = M[n-1]-timestep*(1/12)*5*B[n-1]
-        LhsRhs[1] = M[n-1]*sol[n-1]+timestep*(1/12)*(5*C[n-1]+8*B[n]*sol[n-1]+8*C[n]-B[n+1]*sol[n]-C[n+1])
-        n+=1
+    LhsRhs = np.zeros((2,),dtype=object)    
+    LhsRhs[0] = M-timestep*(1/12)*5*B[0]
+    LhsRhs[1] = np.dot(M,sol[0])+timestep*(1/12)*(5*C[0]+8*np.dot(B[1],sol[0])+8*C[1]-np.dot(B[2],sol[1])-C[2])
     return LhsRhs
 
 #FKT XII:
 def BDF2(timestep,M,B,C,sol):
-    LhsRhs = np.zeros(2)
-    n = 1
-    while n < len(sol):
-        LhsRhs[0] = 1.5*M[n-1]-timestep*B[n-1]
-        LhsRhs[1] = 2*M[n-1]*sol[n-1]-(1/2)*M[n-1]*sol[n]+timestep*C[n-1]
-        n+=1
+    LhsRhs = np.zeros((2,),dtype=object)
+    LhsRhs[0] = 1.5*M-timestep*B[0]
+    LhsRhs[1] = 2*np.dot(M,sol[0])-(1/2)*np.dot(M,sol[1])+timestep*C[0]
     return LhsRhs
 
 
@@ -127,18 +115,23 @@ def DGLBDF2(phi0,timestep):
             phi[n] = (BDF2(timestep,[1.0],[-6.0],[frückwärts((n)*timestep)],[phi[n-1],phi[n-2]])[1])/(BDF2(timestep,[1.0],[-6.0],[frückwärts((n)*timestep)],[phi[n-1],phi[n-2]])[0])
     return phi
 
-plt.plot(t,Vorwärtseuler(t),color="orange")
+"""plt.plot(t,Vorwärtseuler(t),color="orange")
 plt.plot(t,DGLOST(0,dt,0.5),color="red")
 plt.plot(t,DGLAB2(0,dt),color="blue")
 plt.plot(t,DGLAM3(0,dt),color="green")
 plt.plot(t,DGLBDF2(0,dt),color="yellow")
 plt.plot(x_ex,y_ex,color="black")
-plt.show()
+plt.show()"""
+"""print(OST(0.5, 0.2, np.array([1.1]), np.array([1.4, 1.5]), np.array([1.7, 1.8]), np.array([2.0])))
+print(AB2(0.2, np.array([1.1]), np.array([1.5, 1.6]), np.array([1.8, 1.9]), np.array([2.0, 2.1])))
+print(AM3(0.2, np.array([1.1]), np.array([1.4, 1.5, 1.6]), np.array([1.7, 1.8, 1.9]), np.array([2.0, 2.1])))
+print(BDF2(0.2, np.array([1.1]), np.array([1.4]), np.array([1.7]), np.array([2.0, 2.1])))
+M = np.array([[1.1, 1.2],[1.2, 1.1]])
+B = np.array([[1.4, 1.5],[1.5 ,1.4]])
+C = np.array([1.7,1.8])
+sol = np.array([2.0,3.0])
+print(OST(0.5, 0.2, M, np.array([B, B]), np.array([C, C]), sol))
+print(AB2(0.2, M, [B, B], [C, C], [sol,sol]))
+print(AM3(0.2, M, [B, B, B], [C, C, C], [sol,sol]))
+print(BDF2(0.2, M, B, C, [sol,sol]))"""
 
-############################
-############################
-############################
-#NICHT FERTIG
-############################
-############################
-############################

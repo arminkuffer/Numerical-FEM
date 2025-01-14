@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.tri import Triangulation
-
+from scipy.ndimage import gaussian_filter
 """def plot2D(x):
     y = np.sin(x)
     plt.plot(x,y,label="f(x) = sin(x)")
@@ -25,7 +25,6 @@ def quadplot(nodes,elements,sol):
     triangles = np.array(triangles)
     x = nodes[:,0]
     y = nodes[:,1]
-
     fig = plt.figure()
     ax = fig.add_subplot(111,projection='3d')
     triang = Triangulation(x,y,triangles)

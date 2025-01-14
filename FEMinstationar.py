@@ -1,13 +1,17 @@
 import numpy as np
-from lagrange2D import linquadderivref
+from lagrange2D import linquadref,linquadderivref
 from triagplot import quadplot
 from integration import gx2dref,gw2dref,getJacobian
+import awp as ode
 
 #Variables
+rho = 7800
+c = 452
 Lambda = 48
+T0 = 300
 T1 = 600
 T2 = 300
-r = 0.02+0.06 #r = 0.08 kleinster Radius für den gilt T15 < 450 (Maximalwert für y = h)
+r = 0.02 
 b = 0.3
 h = 0.3
 nodes = np.array([[0,0],
@@ -50,51 +54,36 @@ dbc = np.array([[1,T1],
                 [18,T2]])
 
 #Functions:
-def evaluate_stat(elenodes, gpx, gpw):
+def evaluate_instat(elenodes,gpx,gpw,elesol,eleosol,timInt_m,timestep,theta,firststep):
     elemat = np.zeros((4, 4))
+    elevec = np.zeros((4,))
     for k in range(len(gpx)):
-        for i in range(elemat.shape[0]):
-            for j in range(elemat.shape[1]):
+        for i in range(len(elenodes)):
+            for j in range(len(elenodes)):
                 J, detJ, invJ = getJacobian(elenodes, gpx[k][0], gpx[k][1])
+                N_i = linquadref(gpx[k][0], gpx[k][1])[i]
+                N_j = linquadref(gpx[k][0], gpx[k][1])[j]
                 gradN_i = np.matmul(linquadderivref(gpx[k][0], gpx[k][1])[i], invJ)
                 gradN_j = np.matmul(linquadderivref(gpx[k][0], gpx[k][1])[j], invJ)
-                elemat[i][j] += Lambda * (gradN_i @ gradN_j) * detJ * gpw[k]   
-    return elemat, np.zeros(4)
+                print(rho*c*(N_i * N_j) * detJ * gpw[k])
+                M = rho*c*(N_i * N_j) * detJ * gpw[k]
+                B = -(Lambda * (gradN_i @ gradN_j) * detJ * gpw[k])
+                if(timInt_m == 1):
+                    x = ode.OST(theta,timestep,M,B,0,elesol)
+                    elemat[i][j] += x[0]
+                    elevec[i] += x[1]
+                elif(timInt_m == 2):
+                    x= ode.AB2(timestep,M,[B,B,B],[0,0,0],[elesol,eleosol])
+                    elemat[i][j] += x[0]
+                    elevec[i] += x[1]
+                elif(timInt_m == 3):
+                    x = ode.AM3(timestep,M,B,0,[elesol,eleosol,eleosol])
+                    elemat[i][j] += x[0]
+                    elevec[i] += x[1]
+                elif(timInt_m == 4):
+                    x = ode.BDF2(timestep,M,B,0,[elesol,eleosol])
+                    elemat[i][j] += x[0]
+                    elevec[i] += x[1]
+    return elemat, elevec
 
-def assemble(elemat,elevec,sysmat,rhs,ele):
-    for i in range(4):
-        rhs[int(ele[i]-1)] += elevec[i]
-        for j in range(4):	
-            sysmat[int(ele[i]-1)][int(ele[j]-1)] += elemat[i][j]
-    return sysmat,rhs
-
-def assignDBC(sysmat,rhs,dbc):
-    for i in range(dbc.shape[0]):
-        rhs[int(dbc[i][0]-1)] = dbc[i][1]
-        for k in range(sysmat.shape[1]):
-                if k == int(dbc[i][0]-1):
-                    sysmat[int(dbc[i][0]-1)][k] = 1
-                else:
-                    sysmat[int(dbc[i][0]-1)][k] = 0               
-    return sysmat,rhs
-
-def solve(nodes,elements,dbc):
-    eval = []
-    assemb = []
-    for e in elements:
-        eval = evaluate_stat(nodes[e-1],gx2dref(3),gw2dref(3))
-        if(assemb == []):
-            assemb = assemble(eval[0],eval[1],np.zeros((nodes.shape[0],nodes.shape[0])),np.zeros((nodes.shape[0],1)),e)
-        else:
-            assemb = assemble(eval[0],eval[1],assemb[0],assemb[1],e)
-    assign = assignDBC(assemb[0],assemb[1],dbc)
-    sol = np.linalg.solve(assign[0],assign[1])
-    sol = np.array(sol).flatten()
-    return sol
-
-
-sol = solve(nodes,elements,dbc)
-print(sol)
-quadplot(nodes,elements-1,sol)
-
-
+print(evaluate_instat(np.array([[0,0],[1,0],[1,2],[0,2]]),gx2dref(3),gw2dref(3),np.array([1,2,3,4]),np.array([0,0,0,0]),1,1000,0.66,1))                

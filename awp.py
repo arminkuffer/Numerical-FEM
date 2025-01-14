@@ -51,8 +51,10 @@ plt.show()"""
 def OST(theta,timestep,M,B,C,sol):
     LhsRhs = np.zeros((2,),dtype=object)
     LhsRhs[0] = M-theta*timestep*B[0]
-    LhsRhs[1] = np.dot((M+(1-theta)*timestep*B[1]),sol)+timestep*(theta*C[0]+(1-theta)*C[1])
+    LhsRhs[1] = np.dot((M + (1 - theta) * timestep * B[1]), sol) + timestep * (theta * C[0] + (1 - theta) * C[1])
+    print(LhsRhs[1])
     return LhsRhs
+
 
 #FKT X:
 def AB2(timestep,M,B,C,sol):

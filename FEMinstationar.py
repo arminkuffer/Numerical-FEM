@@ -58,17 +58,18 @@ def evaluate_instat(elenodes,gpx,gpw,elesol,eleosol,timInt_m,timestep,theta,firs
     elemat = np.zeros((4, 4))
     elevec = np.zeros((4,),dtype=object)
     for k in range(len(gpx)):
-        for i in range(len(elenodes)):
-            for j in range(len(elenodes)):
+        for i in range(elemat.shape[0]):
+            for j in range(elemat.shape[1]):
                 J, detJ, invJ = getJacobian(elenodes, gpx[k][0], gpx[k][1])
                 N_i = linquadref(gpx[k][0], gpx[k][1])[i]
                 N_j = linquadref(gpx[k][0], gpx[k][1])[j]
                 gradN_i = np.matmul(linquadderivref(gpx[k][0], gpx[k][1])[i], invJ)
                 gradN_j = np.matmul(linquadderivref(gpx[k][0], gpx[k][1])[j], invJ)
                 M = rho*c*(N_i * N_j) * detJ * gpw[k]
-                B = -(Lambda * (gradN_i @ gradN_j) * detJ * gpw[k])
+                B = -(Lambda*(gradN_i @ gradN_j) * detJ * gpw[k])
+                print(M,B)
                 if(timInt_m == 1):
-                    x = ode.OST(theta,timestep,np.array(M),np.array([B,B]),np.array([0,0]),elesol)
+                    x = ode.OST(theta,timestep,M,np.array([B,B]),np.array([0,0]),elesol[j])
                     elemat[i][j] += x[0]
                     elevec[i] += x[1]
                 elif(timInt_m == 2):

@@ -73,8 +73,8 @@ def AM3(timestep,M,B,C,sol):
 #FKT XII:
 def BDF2(timestep,M,B,C,sol):
     LhsRhs = np.zeros((2,),dtype=object)
-    LhsRhs[0] = 1.5*M-timestep*B[0]
-    LhsRhs[1] = 2*np.dot(M,sol[0])-(1/2)*np.dot(M,sol[1])+timestep*C[0]
+    LhsRhs[0] = 1.5*M-timestep*B
+    LhsRhs[1] = 2*np.dot(M,sol[0])-(1/2)*np.dot(M,sol[1])+timestep*C
     return LhsRhs
 
 
@@ -124,16 +124,15 @@ plt.plot(t,DGLAM3(0,dt),color="green")
 plt.plot(t,DGLBDF2(0,dt),color="yellow")
 plt.plot(x_ex,y_ex,color="black")
 plt.show()"""
-"""print(OST(0.5, 0.2, np.array([1.1]), np.array([1.4, 1.5]), np.array([1.7, 1.8]), np.array([2.0])))
-print(AB2(0.2, np.array([1.1]), np.array([1.5, 1.6]), np.array([1.8, 1.9]), np.array([2.0, 2.1])))
-print(AM3(0.2, np.array([1.1]), np.array([1.4, 1.5, 1.6]), np.array([1.7, 1.8, 1.9]), np.array([2.0, 2.1])))
-print(BDF2(0.2, np.array([1.1]), np.array([1.4]), np.array([1.7]), np.array([2.0, 2.1])))
-M = np.array([[1.1, 1.2],[1.2, 1.1]])
+#print(OST(0.5, 0.2, np.array([1.1]), np.array([1.4, 1.5]), np.array([1.7, 1.8]), np.array([2.0])))
+# print(AB2(0.2, np.array([1.1]), np.array([1.5, 1.6]), np.array([1.8, 1.9]), np.array([2.0, 2.1])))
+"""print(AM3(0.2, np.array([1.1]), np.array([1.4, 1.5, 1.6]), np.array([1.7, 1.8, 1.9]), np.array([2.0, 2.1])))
+print(BDF2(0.2, np.array([1.1]), np.array([1.4]), np.array([1.7]), np.array([2.0, 2.1])))"""
+"""M = np.array([[1.1, 1.2],[1.2, 1.1]])
 B = np.array([[1.4, 1.5],[1.5 ,1.4]])
 C = np.array([1.7,1.8])
-sol = np.array([2.0,3.0])
-print(OST(0.5, 0.2, M, np.array([B, B]), np.array([C, C]), sol))
-print(AB2(0.2, M, [B, B], [C, C], [sol,sol]))
+sol = np.array([2.0,3.0])"""
+# print(OST(0.5, 0.2, M, np.array([B, B]), np.array([C, C]), sol))
+"""print(AB2(0.2, M, [B, B], [C, C], [sol,sol]))
 print(AM3(0.2, M, [B, B, B], [C, C, C], [sol,sol]))
 print(BDF2(0.2, M, B, C, [sol,sol]))"""
-

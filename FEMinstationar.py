@@ -8,7 +8,7 @@ import awp as ode
 rho = 7800
 c = 452
 Lambda = 48
-T0 = 300
+T0 = np.array([300,300,300,300])
 T1 = 600
 T2 = 300
 r = 0.02 
@@ -57,6 +57,8 @@ dbc = np.array([[1,T1],
 def evaluate_instat(elenodes,gpx,gpw,elesol,eleosol,timInt_m,timestep,theta,firststep):
     elemat = np.zeros((4, 4))
     elevec = np.zeros((4,),dtype=object)
+    if firststep == 1:
+        timInt_m = 1
     for k in range(len(gpx)):
         for i in range(len(elenodes)):
             for j in range(len(elenodes)):
@@ -68,21 +70,76 @@ def evaluate_instat(elenodes,gpx,gpw,elesol,eleosol,timInt_m,timestep,theta,firs
                 M = rho*c*(N_i * N_j) * detJ * gpw[k]
                 B = -(Lambda * (gradN_i @ gradN_j) * detJ * gpw[k])
                 if(timInt_m == 1):
-                    x = ode.OST(theta,timestep,np.array(M),np.array([B,B]),np.array([0,0]),elesol)
+                    x = ode.OST(theta,timestep,np.array(M),np.array([B,B]),np.array([0,0]),elesol[j])
                     elemat[i][j] += x[0]
                     elevec[i] += x[1]
                 elif(timInt_m == 2):
-                    x= ode.AB2(timestep,M,[B,B,B],[0,0,0],[elesol,eleosol])
+                    x= ode.AB2(timestep,M,[B,B],[0,0],[elesol[j],eleosol[j]])
                     elemat[i][j] += x[0]
                     elevec[i] += x[1]
                 elif(timInt_m == 3):
-                    x = ode.AM3(timestep,M,B,0,[elesol,eleosol,eleosol])
+                    x = ode.AM3(timestep,M,[B,B,B],[0,0,0],[eleosol[j],eleosol[j]])
                     elemat[i][j] += x[0]
                     elevec[i] += x[1]
                 elif(timInt_m == 4):
-                    x = ode.BDF2(timestep,M,B,0,[elesol,eleosol])
+                    x = ode.BDF2(timestep,M,B,0,[elesol[j],eleosol[j]])
                     elemat[i][j] += x[0]
                     elevec[i] += x[1]
     return elemat, elevec
 
-print(evaluate_instat(np.array([[0,0],[1,0],[1,2],[0,2]]),gx2dref(3),gw2dref(3),np.array([1,2,3,4]),np.array([0,0,0,0]),1,1000,0.66,1))                
+def assemble(elemat,elevec,sysmat,rhs,ele):
+    for i in range(4):
+        rhs[int(ele[i]-1)] += elevec[i]
+        for j in range(4):	
+            sysmat[int(ele[i]-1)][int(ele[j]-1)] += elemat[i][j]
+    return sysmat,rhs
+
+def assignDBC(sysmat,rhs,dbc):
+    for i in range(dbc.shape[0]):
+        rhs[int(dbc[i][0]-1)] = dbc[i][1]
+        for k in range(sysmat.shape[1]):
+                if k == int(dbc[i][0]-1):
+                    sysmat[int(dbc[i][0]-1)][k] = 1
+                else:
+                    sysmat[int(dbc[i][0]-1)][k] = 0               
+    return sysmat,rhs
+
+def solve(nodes,elements,dbc):
+    elesol = np.full((18, 1), 300)
+    eleosol = np.zeros((18,1))
+    timInt_m = 1
+    deltat = 500
+    time = int(5000/deltat)
+    theta = 0.5
+    firststep = 0
+    for t in range(time):
+        if t == 0:
+            firststep = 1
+        else:
+            firststep = 0
+        eval = []
+        assemb = []
+        for e in elements:
+            if t == 0:
+                eval = evaluate_instat(nodes[e-1],gx2dref(2),gw2dref(2),elesol[e-1],eleosol[e-1],timInt_m,deltat,theta,firststep)
+            else:
+                eval = evaluate_instat(nodes[e-1],gx2dref(2),gw2dref(2),elesol[e-1],eleosol[e-1],timInt_m,deltat,theta,firststep)
+            if(assemb == []):
+                assemb = assemble(eval[0],eval[1],np.zeros((nodes.shape[0],nodes.shape[0])),np.zeros((nodes.shape[0],1)),e)
+            else:
+                assemb = assemble(eval[0],eval[1],assemb[0],assemb[1],e)
+        assign = assignDBC(assemb[0],assemb[1],dbc)
+        T = np.linalg.solve(assign[0],assign[1])
+        T = np.array(T).flatten()
+        eleosol = elesol
+        elesol = T
+        if(T[14] > 450):
+            print((t+1)*(deltat))
+            return T    
+    return T
+
+
+sol = solve(nodes,elements,dbc)
+print(sol)
+"""print(evaluate_instat(np.array([[0,0],[1,0],[1,2],[0,2]]),gx2dref(3),gw2dref(3),np.array([1,2,3,4]),np.array([0,0,0,0]),1,1000,0.66,1))"""  
+quadplot(nodes,elements-1,sol)

@@ -77,7 +77,7 @@ def evaluate_instat(elenodes,gpx,gpw,elesol,eleosol,timInt_m,timestep,theta,firs
                     elemat[i][j] += x[0]
                     elevec[i] += x[1]
                 elif(timInt_m == 3):
-                    x = ode.AM3(timestep,M,B,0,[elesol,eleosol,eleosol])
+                    x = ode.AM3(timestep,M,[B,B,B],[0,0,0],[eleosol,eleosol])
                     elemat[i][j] += x[0]
                     elevec[i] += x[1]
                 elif(timInt_m == 4):
@@ -86,4 +86,36 @@ def evaluate_instat(elenodes,gpx,gpw,elesol,eleosol,timInt_m,timestep,theta,firs
                     elevec[i] += x[1]
     return elemat, elevec
 
-print(evaluate_instat(np.array([[0,0],[1,0],[1,2],[0,2]]),gx2dref(3),gw2dref(3),np.array([1,2,3,4]),np.array([0,0,0,0]),1,1000,0.66,1))                
+def assemble(elemat,elevec,sysmat,rhs,ele):
+    for i in range(4):
+        rhs[int(ele[i]-1)] += elevec[i]
+        for j in range(4):	
+            sysmat[int(ele[i]-1)][int(ele[j]-1)] += elemat[i][j]
+    return sysmat,rhs
+
+def assignDBC(sysmat,rhs,dbc):
+    for i in range(dbc.shape[0]):
+        rhs[int(dbc[i][0]-1)] = dbc[i][1]
+        for k in range(sysmat.shape[1]):
+                if k == int(dbc[i][0]-1):
+                    sysmat[int(dbc[i][0]-1)][k] = 1
+                else:
+                    sysmat[int(dbc[i][0]-1)][k] = 0               
+    return sysmat,rhs
+
+def solve(nodes,elements,dbc):
+    eval = []
+    assemb = []
+    for e in elements:
+        eval = evaluate_instat(nodes[e-1],gx2dref(3),gw2dref(3),) #input fehlt
+        if(assemb == []):
+            assemb = assemble(eval[0],eval[1],np.zeros((nodes.shape[0],nodes.shape[0])),np.zeros((nodes.shape[0],1)),e)
+        else:
+            assemb = assemble(eval[0],eval[1],assemb[0],assemb[1],e)
+    assign = assignDBC(assemb[0],assemb[1],dbc)
+    sol = np.linalg.solve(assign[0],assign[1])
+    sol = np.array(sol).flatten()
+    return sol
+
+#Test
+"print(evaluate_instat(np.array([[0,0],[1,0],[1,2],[0,2]]),gx2dref(3),gw2dref(3),np.array([1,2,3,4]),np.array([0,0,0,0]),1,1000,0.66,1))"       

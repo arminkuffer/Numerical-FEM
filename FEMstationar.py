@@ -53,9 +53,9 @@ dbc = np.array([[1,T1],
 def evaluate_stat(elenodes, gpx, gpw):
     elemat = np.zeros((4, 4))
     for k in range(len(gpx)):
+        J, detJ, invJ = getJacobian(elenodes, gpx[k][0], gpx[k][1])
         for i in range(elemat.shape[0]):
             for j in range(elemat.shape[1]):
-                J, detJ, invJ = getJacobian(elenodes, gpx[k][0], gpx[k][1])
                 gradN_i = np.matmul(linquadderivref(gpx[k][0], gpx[k][1])[i], invJ)
                 gradN_j = np.matmul(linquadderivref(gpx[k][0], gpx[k][1])[j], invJ)
                 elemat[i][j] += Lambda * (gradN_i @ gradN_j) * detJ * gpw[k]   

@@ -59,7 +59,7 @@ def OST(theta,timestep,M,B,C,sol):
 def AB2(timestep,M,B,C,sol):
     LhsRhs = np.zeros((2,),dtype=object)
     LhsRhs[0] = M
-    LhsRhs[1] = np.dot(M,sol[0])+timestep*(1/2)*(3*np.dot(B[0],sol[0])+3*C[0]-np.dot(B[1],sol[1])-C[1])
+    LhsRhs[1] = np.dot(M,sol[0]) + timestep* ((3/2) * (np.dot(B[0],sol[0]) + C[0]) - (1/2) * (np.dot(B[1],sol[1]) -C[1]))
     return LhsRhs
 
 #FKT XI:

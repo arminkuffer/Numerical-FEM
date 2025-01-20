@@ -2,7 +2,10 @@ import numpy as np
 from lagrange2D import linquadref,linquadderivref
 from triagplot import quadplot
 from integration import gx2dref,gw2dref,getJacobian
-import awp as ode
+import ode as ode
+import time as Time
+import linear_solver as linsolve
+
 
 #Variables
 rho = 7800
@@ -60,25 +63,26 @@ def evaluate_instat(elenodes,gpx,gpw,elesol,eleosol,timInt_m,timestep,theta,firs
     if firststep == 1:
         timInt_m = 1
     for k in range(len(gpx)):
+        J, detJ, invJ = getJacobian(elenodes, gpx[k][0], gpx[k][1])
         for i in range(elemat.shape[0]):
             for j in range(elemat.shape[1]):
-                J, detJ, invJ = getJacobian(elenodes, gpx[k][0], gpx[k][1])
                 N_i = linquadref(gpx[k][0], gpx[k][1])[i]
                 N_j = linquadref(gpx[k][0], gpx[k][1])[j]
                 gradN_i = np.matmul(linquadderivref(gpx[k][0], gpx[k][1])[i], invJ)
                 gradN_j = np.matmul(linquadderivref(gpx[k][0], gpx[k][1])[j], invJ)
                 M = rho*c*(N_i * N_j) * detJ * gpw[k]
                 B = -(Lambda*(gradN_i @ gradN_j) * detJ * gpw[k])
+                C = 0
                 if(timInt_m == 1):
                     x = ode.OST(theta,timestep,np.array(M),np.array([B,B]),np.array([0,0]),elesol[j])
                     elemat[i][j] += x[0]
                     elevec[i] += x[1]
                 elif(timInt_m == 2):
-                    x= ode.AB2(timestep,M,[B,B],[0,0],[elesol[j],eleosol[j]])
+                    x = ode.AB2(timestep, np.array(M), np.array([B, B]), np.array([C, C]), [elesol[j], eleosol[j]])
                     elemat[i][j] += x[0]
                     elevec[i] += x[1]
                 elif(timInt_m == 3):
-                    x = ode.AM3(timestep,M,[B,B,B],[0,0,0],[eleosol[j],eleosol[j]])
+                    x = ode.AM3(timestep, np.array(M), np.array([B, B, B]), np.array([C, C, C]), [elesol[j], eleosol[j]])
                     elemat[i][j] += x[0]
                     elevec[i] += x[1]
                 elif(timInt_m == 4):
@@ -138,8 +142,11 @@ def solve(nodes,elements,dbc):
             return T    
     return T
 
-
+start_time = Time.time()
 sol = solve(nodes,elements,dbc)
+end_time = Time.time()
+elapsed_time = end_time - start_time
+print(elapsed_time)
 print(sol)
 """print(evaluate_instat(np.array([[0,0],[1,0],[1,2],[0,2]]),gx2dref(3),gw2dref(3),np.array([1,2,3,4]),np.array([0,0,0,0]),1,1000,0.66,1))"""  
 quadplot(nodes,elements-1,sol)

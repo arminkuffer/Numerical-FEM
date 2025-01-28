@@ -88,6 +88,7 @@ def solve(nodes,elements,dbc):
         else:
             assemb = assemble(eval[0],eval[1],assemb[0],assemb[1],e)
     assign = assignDBC(assemb[0],assemb[1],dbc)
+    print(assign)
     sol = linsolve.solveGauss(assign[0],assign[1])
     sol = np.array(sol).flatten()
     return sol

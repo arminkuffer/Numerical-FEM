@@ -46,7 +46,7 @@ def solveCG(A,b,x0,rtol,itermax):
     print(k)
     return x
 
-n = 300
+"""n = 300
 phi = 5.01
 b = np.ones((n,))
 A = np.diag(np.full((n),phi)) -2*np.diag(np.ones((n-1)),k=1) - 2*np.diag(np.ones((n-1)),k=-1)
@@ -59,7 +59,7 @@ time_start = t.time()
 sol = solveG(A,b,np.zeros((n,)),0.0000001,1000)
 time_stop = t.time()
 print(sol)
-print(time_stop-time_start)
+print(time_stop-time_start)"""
 
 
     

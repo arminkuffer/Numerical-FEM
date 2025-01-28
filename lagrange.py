@@ -20,7 +20,7 @@ def forwarddifference(h):
     fx0 = (polyh-poly)/h
     return fx0
 
-def LagrangeBasisDeriv(x,n,i,x_node,f_node):
+def LagrangeBasisDeriv(x,n,i,x_node):
     lagrange = 0
     for m in range(n+1):
         product = 1

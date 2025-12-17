@@ -2,7 +2,6 @@ import numpy as np
 from lagrange2D import linear_quadrilateral_shape_function_derivatives as linquadderivref, linear_quadrilateral_shape_functions as linquadref
 from triagplot import plot_quadrilateral_mesh as quadplot
 from integration import get_gauss_points_2d_reference as gx2dref, get_gauss_weights_2d_reference as gw2dref, compute_jacobian as getJacobian
-import linear_solver as linsolve
 
 # Constants
 THERMAL_CONDUCTIVITY = 48
@@ -11,7 +10,7 @@ TEMP_BOUNDARY_2 = 300
 RADIUS = 0.1  # Minimum radius for T15 < 450 (max value for y = HEIGHT)
 WIDTH = 0.3
 HEIGHT = 0.3
-EXP_COEFF_1 = 10**6
+EXP_COEFF_1 = 10**6 
 EXP_COEFF_2 = 10**3
 
 # Nodes and elements

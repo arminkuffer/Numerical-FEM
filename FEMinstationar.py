@@ -1,152 +1,196 @@
 import numpy as np
-from lagrange2D import linquadref,linquadderivref
-from triagplot import quadplot
-from integration import gx2dref,gw2dref,getJacobian
+from lagrange2D import linear_quadrilateral_shape_functions as linquadref, linear_quadrilateral_shape_function_derivatives as linquadderivref
+from triagplot import plot_quadrilateral_mesh as quadplot
+from integration import get_gauss_points_2d_reference as gx2dref, get_gauss_weights_2d_reference as gw2dref, compute_jacobian as getJacobian
 import ode as ode
 import time as Time
 import linear_solver as linsolve
 
 
-#Variables
-rho = 7800
-c = 452
-Lambda = 48
-T0 = np.array([300,300,300,300])
-T1 = 600
-T2 = 300
-r = 0.02 
-b = 0.3
-h = 0.3
-nodes = np.array([[0,0],
-                  [b/3,0],
-                  [(2/3)*b,0],
-                  [b,0],
-                   [0,h/3],
-                   [b/3,h/3],
-                   [(2/3)*b,h/3],
-                   [b,h/3],
-                   [0,(2*h)/3],
-                   [b/3,(2*h)/3],
-                   [(2/3)*b,(2*h)/3],
-                   [b-r*np.sin(np.pi/6),h-r*np.cos(np.pi/6)],
-                   [b,h-r],
-                   [b-r*np.cos(np.pi/6),h-r*np.sin(np.pi/6)],
-                   [0,h],
-                   [b/3,h],
-                   [b/2,h],
-                   [b-r,h]])
+# Variables
+material_density = 7800
+specific_heat_capacity = 452
+thermal_conductivity = 48
+initial_temperature = np.array([300, 300, 300, 300])
+high_boundary_temperature = 600
+low_boundary_temperature = 300
+radius = 0.02
+domain_width = 0.3
+domain_height = 0.3
 
-elements = np.array([[1,2,6,5],
-                     [2,3,7,6],
-                     [3,4,8,7],
-                     [5,6,10,9],
-                      [6,7,11,10],
-                      [11,7,12,14],
-                      [7,8,13,12],
-                      [9,10,16,15],
-                      [10,11,17,16],
-                      [11,14,18,17]])
+nodes = np.array([
+    [0, 0],
+    [domain_width / 3, 0],
+    [(2 / 3) * domain_width, 0],
+    [domain_width, 0],
+    [0, domain_height / 3],
+    [domain_width / 3, domain_height / 3],
+    [(2 / 3) * domain_width, domain_height / 3],
+    [domain_width, domain_height / 3],
+    [0, (2 * domain_height) / 3],
+    [domain_width / 3, (2 * domain_height) / 3],
+    [(2 / 3) * domain_width, (2 * domain_height) / 3],
+    [domain_width - radius * np.sin(np.pi / 6), domain_height - radius * np.cos(np.pi / 6)],
+    [domain_width, domain_height - radius],
+    [domain_width - radius * np.cos(np.pi / 6), domain_height - radius * np.sin(np.pi / 6)],
+    [0, domain_height],
+    [domain_width / 3, domain_height],
+    [domain_width / 2, domain_height],
+    [domain_width - radius, domain_height],
+])
 
-dbc = np.array([[1,T1],
-                [2,T1],
-                [3,T1],
-                [4,T1],
-                [12,T2],
-                [13,T2],     
-                [14,T2],
-                [18,T2]])
+elements = np.array(
+    [
+        [1, 2, 6, 5],
+        [2, 3, 7, 6],
+        [3, 4, 8, 7],
+        [5, 6, 10, 9],
+        [6, 7, 11, 10],
+        [11, 7, 12, 14],
+        [7, 8, 13, 12],
+        [9, 10, 16, 15],
+        [10, 11, 17, 16],
+        [11, 14, 18, 17],
+    ]
+)
+
+dirichlet_boundary_conditions = np.array(
+    [
+        [1, high_boundary_temperature],
+        [2, high_boundary_temperature],
+        [3, high_boundary_temperature],
+        [4, high_boundary_temperature],
+        [12, low_boundary_temperature],
+        [13, low_boundary_temperature],
+        [14, low_boundary_temperature],
+        [18, low_boundary_temperature],
+    ]
+)
 
 #Functions:
-def evaluate_instat(elenodes,gpx,gpw,elesol,eleosol,timInt_m,timestep,theta,firststep):
-    elemat = np.zeros((4, 4))
-    elevec = np.zeros((4,),dtype=object)
-    if firststep == 1:
-        timInt_m = 1
-    for k in range(len(gpx)):
-        J, detJ, invJ = getJacobian(elenodes, gpx[k][0], gpx[k][1])
-        for i in range(elemat.shape[0]):
-            for j in range(elemat.shape[1]):
-                N_i = linquadref(gpx[k][0], gpx[k][1])[i]
-                N_j = linquadref(gpx[k][0], gpx[k][1])[j]
-                gradN_i = np.matmul(linquadderivref(gpx[k][0], gpx[k][1])[i], invJ)
-                gradN_j = np.matmul(linquadderivref(gpx[k][0], gpx[k][1])[j], invJ)
-                M = rho*c*(N_i * N_j) * detJ * gpw[k]
-                B = -(Lambda*(gradN_i @ gradN_j) * detJ * gpw[k])
-                C = 0
-                if(timInt_m == 1):
-                    x = ode.OST(theta,timestep,np.array(M),np.array([B,B]),np.array([0,0]),elesol[j])
-                    elemat[i][j] += x[0]
-                    elevec[i] += x[1]
-                elif(timInt_m == 2):
-                    x = ode.AB2(timestep, np.array(M), np.array([B, B]), np.array([C, C]), [elesol[j], eleosol[j]])
-                    elemat[i][j] += x[0]
-                    elevec[i] += x[1]
-                elif(timInt_m == 3):
-                    x = ode.AM3(timestep, np.array(M), np.array([B, B, B]), np.array([C, C, C]), [elesol[j], eleosol[j]])
-                    elemat[i][j] += x[0]
-                    elevec[i] += x[1]
-                elif(timInt_m == 4):
-                    x = ode.BDF2(timestep,M,B,0,[elesol[j],eleosol[j]])
-                    elemat[i][j] += x[0]
-                    elevec[i] += x[1]
-    return elemat, elevec
+def evaluate_transient(element_nodes, gauss_points, gauss_weights, current_solution, previous_solution, time_integration_method, time_step, theta, is_first_step):
+    element_stiffness_matrix = np.zeros((4, 4))
+    element_load_vector = np.zeros((4,), dtype=object)
+    if is_first_step == 1:
+        time_integration_method = 1
+    for k in range(len(gauss_points)):
+        jacobian, determinant_jacobian, inverse_jacobian = getJacobian(element_nodes, gauss_points[k][0], gauss_points[k][1])
+        for i in range(element_stiffness_matrix.shape[0]):
+            for j in range(element_stiffness_matrix.shape[1]):
+                shape_function_i = linquadref(gauss_points[k][0], gauss_points[k][1])[i]
+                shape_function_j = linquadref(gauss_points[k][0], gauss_points[k][1])[j]
+                gradient_shape_function_i = np.matmul(linquadderivref(gauss_points[k][0], gauss_points[k][1])[i], inverse_jacobian)
+                gradient_shape_function_j = np.matmul(linquadderivref(gauss_points[k][0], gauss_points[k][1])[j], inverse_jacobian)
+                mass_matrix = material_density * specific_heat_capacity * (shape_function_i * shape_function_j) * determinant_jacobian * gauss_weights[k]
+                damping_matrix = -(thermal_conductivity * (gradient_shape_function_i @ gradient_shape_function_j) * determinant_jacobian * gauss_weights[k])
+                stiffness_matrix = 0
+                if time_integration_method == 1:
+                    result = ode.OST(theta, time_step, np.array(mass_matrix), np.array([damping_matrix, damping_matrix]), np.array([0, 0]), current_solution[j])
+                    element_stiffness_matrix[i][j] += result[0]
+                    element_load_vector[i] += result[1]
+                elif time_integration_method == 2:
+                    result = ode.AB2(time_step, np.array(mass_matrix), np.array([damping_matrix, damping_matrix]), np.array([stiffness_matrix, stiffness_matrix]), [current_solution[j], previous_solution[j]])
+                    element_stiffness_matrix[i][j] += result[0]
+                    element_load_vector[i] += result[1]
+                elif time_integration_method == 3:
+                    result = ode.AM3(time_step, np.array(mass_matrix), np.array([damping_matrix, damping_matrix, damping_matrix]), np.array([stiffness_matrix, stiffness_matrix, stiffness_matrix]), [current_solution[j], previous_solution[j]])
+                    element_stiffness_matrix[i][j] += result[0]
+                    element_load_vector[i] += result[1]
+                elif time_integration_method == 4:
+                    result = ode.BDF2(time_step, mass_matrix, damping_matrix, 0, [current_solution[j], previous_solution[j]])
+                    element_stiffness_matrix[i][j] += result[0]
+                    element_load_vector[i] += result[1]
+    return element_stiffness_matrix, element_load_vector
 
-def assemble(elemat,elevec,sysmat,rhs,ele):
+def assemble(element_stiffness_matrix, element_load_vector, global_system_matrix, global_rhs_vector, element_node_indices):
     for i in range(4):
-        rhs[int(ele[i]-1)] += elevec[i]
-        for j in range(4):	
-            sysmat[int(ele[i]-1)][int(ele[j]-1)] += elemat[i][j]
-    return sysmat,rhs
+        global_rhs_vector[int(element_node_indices[i] - 1)] += element_load_vector[i]
+        for j in range(4):
+            global_system_matrix[int(element_node_indices[i] - 1)][int(element_node_indices[j] - 1)] += element_stiffness_matrix[i][j]
+    return global_system_matrix, global_rhs_vector
 
-def assignDBC(sysmat,rhs,dbc):
-    for i in range(dbc.shape[0]):
-        rhs[int(dbc[i][0]-1)] = dbc[i][1]
-        for k in range(sysmat.shape[1]):
-                if k == int(dbc[i][0]-1):
-                    sysmat[int(dbc[i][0]-1)][k] = 1
-                else:
-                    sysmat[int(dbc[i][0]-1)][k] = 0               
-    return sysmat,rhs
+def assign_dirichlet_boundary_conditions(global_system_matrix, global_rhs_vector, dirichlet_boundary_conditions):
+    for i in range(dirichlet_boundary_conditions.shape[0]):
+        global_rhs_vector[int(dirichlet_boundary_conditions[i][0] - 1)] = dirichlet_boundary_conditions[i][1]
+        for k in range(global_system_matrix.shape[1]):
+            if k == int(dirichlet_boundary_conditions[i][0] - 1):
+                global_system_matrix[int(dirichlet_boundary_conditions[i][0] - 1)][k] = 1
+            else:
+                global_system_matrix[int(dirichlet_boundary_conditions[i][0] - 1)][k] = 0
+    return global_system_matrix, global_rhs_vector
 
-def solve(nodes,elements,dbc):
-    elesol = np.full((18, 1), 300)
-    eleosol = np.zeros((18,1))
-    timInt_m = 1
-    deltat = 500
-    time = int(5000/deltat)
+def solve(node_coordinates, element_indices, dirichlet_boundary_conditions):
+    current_solution = np.full((18, 1), 300)
+    previous_solution = np.zeros((18, 1))
+    time_integration_method = 1
+    time_step = 500
+    total_time_steps = int(5000 / time_step)
     theta = 0.5
-    firststep = 0
-    for t in range(time):
+    is_first_step = 0
+    for t in range(total_time_steps):
         if t == 0:
-            firststep = 1
+            is_first_step = 1
         else:
-            firststep = 0
-        eval = []
-        assemb = []
-        for e in elements:
-            if t == 0:
-                eval = evaluate_instat(nodes[e-1],gx2dref(2),gw2dref(2),elesol[e-1],eleosol[e-1],timInt_m,deltat,theta,firststep)
+            is_first_step = 0
+        element_evaluation = []
+        assembled_system = []
+        for element_node_indices in element_indices:
+            element_evaluation = evaluate_transient(
+                node_coordinates[element_node_indices - 1],
+                gx2dref(2),
+                gw2dref(2),
+                current_solution[element_node_indices - 1],
+                previous_solution[element_node_indices - 1],
+                time_integration_method,
+                time_step,
+                theta,
+                is_first_step,
+            )
+            if assembled_system == []:
+                assembled_system = assemble(
+                    element_evaluation[0],
+                    element_evaluation[1],
+                    np.zeros((node_coordinates.shape[0], node_coordinates.shape[0])),
+                    np.zeros((node_coordinates.shape[0], 1)),
+                    element_node_indices,
+                )
             else:
-                eval = evaluate_instat(nodes[e-1],gx2dref(2),gw2dref(2),elesol[e-1],eleosol[e-1],timInt_m,deltat,theta,firststep)
-            if(assemb == []):
-                assemb = assemble(eval[0],eval[1],np.zeros((nodes.shape[0],nodes.shape[0])),np.zeros((nodes.shape[0],1)),e)
-            else:
-                assemb = assemble(eval[0],eval[1],assemb[0],assemb[1],e)
-        assign = assignDBC(assemb[0],assemb[1],dbc)
-        T = np.linalg.solve(assign[0],assign[1])
-        T = np.array(T).flatten()
-        eleosol = elesol
-        elesol = T
-        if(T[14] > 450):
-            print((t+1)*(deltat))
-            return T    
-    return T
+                assembled_system = assemble(
+                    element_evaluation[0],
+                    element_evaluation[1],
+                    assembled_system[0],
+                    assembled_system[1],
+                    element_node_indices,
+                )
+        assigned_system = assign_dirichlet_boundary_conditions(
+            assembled_system[0], assembled_system[1], dirichlet_boundary_conditions
+        )
+        temperature_solution = np.linalg.solve(assigned_system[0], assigned_system[1])
+        temperature_solution = np.array(temperature_solution).flatten()
+        previous_solution = current_solution
+        current_solution = temperature_solution
+        if temperature_solution[14] > 450:
+            print((t + 1) * (time_step))
+            return temperature_solution
+    return temperature_solution
 
 start_time = Time.time()
-sol = solve(nodes,elements,dbc)
+sol = solve(nodes, elements, dirichlet_boundary_conditions)
 end_time = Time.time()
 elapsed_time = end_time - start_time
 print(elapsed_time)
 print(sol)
-"""print(evaluate_instat(np.array([[0,0],[1,0],[1,2],[0,2]]),gx2dref(3),gw2dref(3),np.array([1,2,3,4]),np.array([0,0,0,0]),1,1000,0.66,1))"""  
-quadplot(nodes,elements-1,sol)
+print(
+    evaluate_transient(
+        np.array([[0, 0], [1, 0], [1, 2], [0, 2]]),
+        gx2dref(3),
+        gw2dref(3),
+        np.array([1, 2, 3, 4]),
+        np.array([0, 0, 0, 0]),
+        1,
+        1000,
+        0.66,
+        1,
+    )
+)
+quadplot(nodes, elements - 1, sol)

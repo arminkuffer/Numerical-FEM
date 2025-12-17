@@ -1,62 +1,62 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def LagrangeBasis(x,n,i,x_node):
-    lagrange = 1
-    for k in range(n+1):
-        if(k != i):
-            lagrange = lagrange*((x-x_node[k])/(x_node[i]-x_node[k]))
-    return lagrange
+def lagrange_basis(x, order, i, x_nodes):
+    basis = 1
+    for k in range(order + 1):
+        if k != i:
+            basis *= (x - x_nodes[k]) / (x_nodes[i] - x_nodes[k])
+    return basis
 
-def LagrangePolynom(x,n,x_node,f_node):
-    poly = 0
-    for i in range(n+1):
-        poly = poly+np.multiply(f_node[i],LagrangeBasis(x,n,i,x_node))
-    return poly
+def lagrange_polynomial(x, order, x_nodes, f_nodes):
+    polynomial = 0
+    for i in range(order + 1):
+        polynomial += np.multiply(f_nodes[i], lagrange_basis(x, order, i, x_nodes))
+    return polynomial
 
-def forwarddifference(h):
-    polyh = LagrangePolynom(x+h,o,x_node,f_node)
-    poly = LagrangePolynom(x,o,x_node,f_node)
-    fx0 = (polyh-poly)/h
-    return fx0
+def forward_difference(h):
+    polynomial_h = lagrange_polynomial(x + h, o, x_nodes, f_nodes)
+    polynomial = lagrange_polynomial(x, o, x_nodes, f_nodes)
+    derivative = (polynomial_h - polynomial) / h
+    return derivative
 
-def LagrangeBasisDeriv(x,n,i,x_node):
-    lagrange = 0
-    for m in range(n+1):
+def lagrange_basis_derivative(x, order, i, x_nodes):
+    derivative = 0
+    for m in range(order + 1):
         product = 1
-        for k in range(n+1):
-            if(k!=i and k!=m):
-                product = product*(x-x_node[k])/(x_node[i]-x_node[k])
-        if(m!=i):
-            lagrange += (1/(x_node[i]-x_node[m]))*product 
-    return lagrange
+        for k in range(order + 1):
+            if k != i and k != m:
+                product *= (x - x_nodes[k]) / (x_nodes[i] - x_nodes[k])
+        if m != i:
+            derivative += (1 / (x_nodes[i] - x_nodes[m])) * product
+    return derivative
 
-def LagrangePolynomDeriv(x,n,x_node,f_node):
-    poly = 0
-    for i in range(n+1):
-        poly += np.multiply(f_node[i],LagrangeBasisDeriv(x,n,i,x_node,f_node))
-    return poly
+def lagrange_polynomial_derivative(x, order, x_nodes, f_nodes):
+    polynomial_derivative = 0
+    for i in range(order + 1):
+        polynomial_derivative += np.multiply(f_nodes[i], lagrange_basis_derivative(x, order, i, x_nodes))
+    return polynomial_derivative
 
-def plotlagrange(polynome,diff):
-    plt.plot(x,polynome,color="yellow",linewidth=1)
-    plt.plot(x_node,f_node,'o',color='black')
-    plt.plot(x,diff,color="green",linewidth="1")
-    plt.plot(x,fx,color="black",linewidth=1)
-    plt.title('Lagrangian polynome of order 4')
+def plot_lagrange(polynomial, derivative):
+    plt.plot(x, polynomial, color="yellow", linewidth=1)
+    plt.plot(x_nodes, f_nodes, 'o', color='black')
+    plt.plot(x, derivative, color="green", linewidth="1")
+    plt.plot(x, fx, color="black", linewidth=1)
+    plt.title('Lagrange Polynomial of Order 4')
     plt.xlabel('x')
     plt.ylabel('f(x)')
     plt.grid(linewidth=.05)
     plt.show()
 
 ##############################################
-h = 10**(-6)                                 #stepsize
-x_node = [0,1,2,3,4]                         #data points
-f_node = (x_node/(np.add(1,x_node)))**5      #data points
-x = np.linspace(0,4,500)                     #function input
-fx = (x/(np.add(1,x)))**5                    #exact output
-o = 4                                        #order  
+h = 10**(-6)                                 # Step size
+x_nodes = [0, 1, 2, 3, 4]                    # Data points
+f_nodes = (x_nodes / (np.add(1, x_nodes)))**5  # Data points
+x = np.linspace(0, 4, 500)                   # Function input
+fx = (x / (np.add(1, x)))**5                 # Exact output
+o = 4                                        # Order
 ##############################################
-print(LagrangePolynomDeriv(0.6,4,x_node,f_node))
-plotlagrange(LagrangePolynom(x,o,x_node,f_node),LagrangePolynomDeriv(x,o,x_node,f_node))
-forwarddifference(h)
+print(lagrange_polynomial_derivative(0.6, 4, x_nodes, f_nodes))
+plot_lagrange(lagrange_polynomial(x, o, x_nodes, f_nodes), lagrange_polynomial_derivative(x, o, x_nodes, f_nodes))
+forward_difference(h)
 
